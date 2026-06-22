@@ -1,0 +1,32 @@
+{% extends "core/auth_base.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+{% block subtitle %}سجّل دخولك لمتابعة خطة محتواك{% endblock %}
+
+{% block content %}
+<h2 class="text-lg font-bold text-white mb-4">تسجيل الدخول</h2>
+
+{% if form.non_field_errors %}
+<div class="bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs rounded-xl p-3 mb-4">
+    اسم المستخدم أو كلمة المرور غير صحيحة.
+</div>
+{% endif %}
+
+<form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% for field in form %}
+    <div>
+        <label class="block text-xs font-bold text-slate-400 mb-2">{{ field.label }}</label>
+        {{ field }}
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-4 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all">
+        دخول
+    </button>
+</form>
+
+<p class="text-center text-xs text-slate-400 mt-5">
+    مستخدم جديد؟
+    <a href="{% url 'signup' %}" class="text-indigo-400 font-bold hover:underline">أنشئ حساب جديد</a>
+</p>
+{% endblock %}
