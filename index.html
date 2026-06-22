@@ -3,234 +3,360 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم خطة محتوى مستر أكرم - إدارة أعمال</title>
-    <!-- Tailwind CSS -->
+    <title> Academy </title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Cairo -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            accent: '#deff9a', 
+                            50: '#f5f3ff', 100: '#ede9fe',
+                            500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            accent: '#deff9a',
                         }
                     },
-                    fontFamily: {
-                        cairo: ['Cairo', 'sans-serif'],
-                    }
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
-        body {
+        body { font-family: 'Cairo', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+
+        .screen { display: none; }
+        .screen.active { display: flex; }
+
+        .auth-input {
+            width: 100%;
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #f1f5f9;
             font-family: 'Cairo', sans-serif;
+            transition: border-color 0.2s;
+            outline: none;
         }
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .auth-input:focus { border-color: #4f46e5; }
+        .auth-input::placeholder { color: #475569; }
+
+        .tab-active { background: #4f46e5; color: white; box-shadow: 0 4px 15px rgba(79,70,229,0.3); }
+        .tab-inactive { color: #94a3b8; }
+        .tab-inactive:hover { color: #e2e8f0; background: #1e293b; }
+
+        .error-msg { color: #f87171; font-size: 12px; margin-top: 6px; display: none; }
+        .error-msg.show { display: block; }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
         }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .auth-bg {
+            background: radial-gradient(ellipse at 20% 50%, rgba(79,70,229,0.15) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.1) 0%, transparent 50%),
+                        #020617;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4f46e5;
+
+        .strength-bar {
+            height: 3px;
+            border-radius: 99px;
+            transition: all 0.3s;
+            background: #1e293b;
+            flex: 1;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-cairo selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-cairo selection:bg-indigo-500 selection:text-white">
 
-    <!-- Header / Navbar -->
-    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            
-            <!-- Logo & Brand Info -->
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-black text-2xl shadow-lg shadow-indigo-500/20 text-white transform hover:rotate-12 transition-transform">
-                    💼
+    <!-- SCREEN 1: AUTH -->
+    <div id="screen-auth" class="screen active auth-bg min-h-screen flex-col items-center justify-center p-4">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-black text-3xl shadow-2xl shadow-indigo-500/30 text-white mx-auto mb-4 transform hover:rotate-6 transition-transform cursor-default">💼</div>
+            <h1 class="text-2xl font-extrabold text-white"> Academy</h1>
+            <p class="text-sm text-slate-400 mt-1">منصة إدارة المحتوي </p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden backdrop-blur-sm">
+            <div class="flex p-2 gap-1 border-b border-slate-800 bg-slate-950/50">
+                <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all tab-active">
+                    <i class="fa-solid fa-right-to-bracket ml-1.5 text-xs"></i> تسجيل الدخول
+                </button>
+                <button id="tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all tab-inactive">
+                    <i class="fa-solid fa-user-plus ml-1.5 text-xs"></i> إنشاء حساب
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="form-login" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2">البريد الإلكتروني</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-envelope absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="email" id="login-email" class="auth-input pr-10" placeholder="example@email.com">
+                    </div>
                 </div>
                 <div>
-                    <h1 class="text-xl font-extrabold tracking-wide flex items-center gap-2">
-                        Akram Academy <span class="text-xs px-2 py-0.5 rounded-full bg-brand-accent text-slate-950 font-bold">لوحة التخطيط</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 mt-0.5">لوحة التحكم التفاعلية لخطة المحتوى الشهري لمستر أكرم - إدارة الأعمال</p>
+                    <label class="block text-xs font-bold text-slate-400 mb-2">كلمة المرور</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="password" id="login-password" class="auth-input pr-10" placeholder="••••••••">
+                        <button type="button" onclick="togglePassword('login-password', this)" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                            <i class="fa-regular fa-eye text-sm"></i>
+                        </button>
+                    </div>
                 </div>
+                <p id="login-error" class="error-msg"><i class="fa-solid fa-circle-exclamation ml-1"></i><span id="login-error-text">خطأ في البيانات</span></p>
+                <button onclick="handleLogin()" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-2">
+                    <span id="login-btn-text">دخول إلى لوحة التحكم</span>
+                </button>
+                <p class="text-center text-xs text-slate-500 pt-2">
+                    ليس لديك حساب؟ <span onclick="switchAuthTab('signup')" class="text-indigo-400 hover:text-indigo-300 cursor-pointer font-bold">أنشئ حساباً جديداً</span>
+                </p>
             </div>
 
-            <!-- Stats Bar / Actions -->
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-center">
-                <button onclick="openAddModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/20 flex items-center gap-2 transition-all hover:-translate-y-0.5">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    إضافة فكرة جديدة
+            <!-- Signup Form -->
+            <div id="form-signup" class="p-6 space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2">البريد الإلكتروني</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-envelope absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="email" id="signup-email" class="auth-input pr-10" placeholder="example@email.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2">كلمة المرور</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="password" id="signup-password" oninput="checkPasswordStrength(this.value)" class="auth-input pr-10" placeholder="على الأقل 8 أحرف">
+                        <button type="button" onclick="togglePassword('signup-password', this)" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                            <i class="fa-regular fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="flex gap-1 mt-2" id="strength-bars">
+                        <div class="strength-bar" id="bar-s1"></div>
+                        <div class="strength-bar" id="bar-s2"></div>
+                        <div class="strength-bar" id="bar-s3"></div>
+                        <div class="strength-bar" id="bar-s4"></div>
+                    </div>
+                    <p id="strength-label" class="text-xs text-slate-500 mt-1"></p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2">تأكيد كلمة المرور</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-shield-halved absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="password" id="signup-confirm" class="auth-input pr-10" placeholder="أعد كتابة كلمة المرور">
+                    </div>
+                </div>
+                <p id="signup-error" class="error-msg"><i class="fa-solid fa-circle-exclamation ml-1"></i><span id="signup-error-text">خطأ</span></p>
+                <button onclick="handleSignup()" id="signup-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-2">
+                    <span id="signup-btn-text">إنشاء الحساب</span>
                 </button>
-                <button onclick="confirmReset()" class="border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white text-xs px-3 py-2.5 rounded-xl transition-all">
-                    <i class="fa-solid fa-rotate-left ml-1"></i> إعادة ضبط الخطة الأصلية
-                </button>
+                <p class="text-center text-xs text-slate-500 pt-2">
+                    لديك حساب بالفعل؟ <span onclick="switchAuthTab('login')" class="text-indigo-400 hover:text-indigo-300 cursor-pointer font-bold">سجل دخولك</span>
+                </p>
             </div>
-
         </div>
-    </header>
+    </div>
 
-    <!-- Main Workspace -->
-    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        
-        <!-- Statistics Section -->
-        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <!-- Card 1: Total -->
-            <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
-                <div class="absolute -right-4 -bottom-4 text-slate-800/30 text-7xl font-bold group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-list-check"></i>
-                </div>
-                <p class="text-xs text-slate-400 font-bold">إجمالي المحتوى</p>
-                <p id="stat-total" class="text-3xl font-black text-white mt-1">32</p>
-                <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden">
-                    <div class="bg-indigo-500 h-full w-full"></div>
-                </div>
-            </div>
-            <!-- Card 2: Ready -->
-            <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
-                <div class="absolute -right-4 -bottom-4 text-emerald-950/20 text-7xl font-bold group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <p class="text-xs text-slate-400 font-bold">جاهز للنشر 🟢</p>
-                <p id="stat-ready" class="text-3xl font-black text-emerald-400 mt-1">0</p>
-                <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden">
-                    <div id="bar-ready" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+    <div id="screen-setup" class="screen min-h-screen auth-bg flex-col items-center justify-center p-4">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-black text-3xl shadow-2xl shadow-indigo-500/30 text-white mx-auto mb-4">🎓</div>
+            <h1 class="text-2xl font-extrabold text-white">مرحباً بك!</h1>
+            <p class="text-sm text-slate-400 mt-1">أنشئ ملفك الشخصي لبدء إدارة محتواك</p>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden backdrop-blur-sm p-6 space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2">اسم المدرس / الأكاديمية</label>
+                <div class="relative">
+                    <i class="fa-solid fa-chalkboard-user absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <input type="text" id="teacher-name" class="auth-input pr-10" placeholder="مثال: مستر أكرم" maxlength="60">
                 </div>
             </div>
-            <!-- Card 3: In Progress -->
-            <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
-                <div class="absolute -right-4 -bottom-4 text-amber-950/20 text-7xl font-bold group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-pen-ruler"></i>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 mb-2">التخصص / المادة</label>
+                <div class="relative">
+                    <i class="fa-solid fa-book absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <input type="text" id="teacher-subject" class="auth-input pr-10" placeholder="مثال: إدارة الأعمال، تسويق، محاسبة..." maxlength="80">
                 </div>
-                <p class="text-xs text-slate-400 font-bold">جاري العمل / تصوير 🎨</p>
-                <p id="stat-progress" class="text-3xl font-black text-amber-400 mt-1">0</p>
-                <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden">
-                    <div id="bar-progress" class="bg-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
+                <p class="text-xs text-slate-500 mt-1.5">اكتب تخصصك بحرية</p>
+            </div>
+
+            <p id="setup-error" class="error-msg"><i class="fa-solid fa-circle-exclamation ml-1"></i><span id="setup-error-text">برجاء ملء جميع الحقول</span></p>
+
+            <button onclick="handleSetup()" id="setup-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                <span>ابدأ الآن</span>
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-dashboard" class="screen min-h-screen flex-col bg-slate-950">
+
+        <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-black text-2xl shadow-lg shadow-indigo-500/20 text-white transform hover:rotate-12 transition-transform">💼</div>
+                    <div>
+                        <h1 class="text-xl font-extrabold tracking-wide flex items-center gap-2 flex-wrap">
+                            <span id="dashboard-title"> Academy</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-brand-accent text-slate-950 font-bold">لوحة التخطيط</span>
+                        </h1>
+                        <p class="text-xs text-slate-400 mt-0.5">لوحة التحكم التفاعلية لخطة المحتوى الشهري</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-center">
+                    <button onclick="openAddModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/20 flex items-center gap-2 transition-all hover:-translate-y-0.5">
+                        <i class="fa-solid fa-plus text-xs"></i> إضافة فكرة جديدة
+                    </button>
+                    <div class="relative group">
+                        <button class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-xl transition-all text-sm">
+                            <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold" id="user-avatar">م</div>
+                            <span id="user-email-display" class="text-xs text-slate-300 max-w-[120px] truncate">user@email.com</span>
+                            <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+                        </button>
+                        <div class="absolute left-0 top-full mt-2 w-44 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                            <div class="p-3 border-b border-slate-800">
+                                <p class="text-xs font-bold text-slate-300 truncate" id="dropdown-name"></p>
+                                <p class="text-xs text-slate-500 truncate" id="dropdown-email"></p>
+                            </div>
+                            <button onclick="handleLogout()" class="w-full text-right px-3 py-2.5 text-xs text-rose-400 hover:bg-rose-500/10 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-right-from-bracket text-xs"></i> تسجيل الخروج
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <!-- Card 4: Video Reels -->
-            <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
-                <div class="absolute -right-4 -bottom-4 text-rose-950/20 text-7xl font-bold group-hover:scale-110 transition-transform">
-                    <i class="fa-brands fa-tiktok"></i>
+        </header>
+
+        <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+            <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="absolute -right-4 -bottom-4 text-slate-800/30 text-7xl font-bold group-hover:scale-110 transition-transform"><i class="fa-solid fa-list-check"></i></div>
+                    <p class="text-xs text-slate-400 font-bold">إجمالي المحتوى</p>
+                    <p id="stat-total" class="text-3xl font-black text-white mt-1">0</p>
+                    <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden"><div class="bg-indigo-500 h-full w-full"></div></div>
                 </div>
-                <p class="text-xs text-slate-400 font-bold">فيديوهات وريلز 🎬</p>
-                <p id="stat-videos" class="text-3xl font-black text-rose-400 mt-1">0</p>
-                <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden">
-                    <div id="bar-videos" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div>
+                <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="absolute -right-4 -bottom-4 text-emerald-950/20 text-7xl font-bold group-hover:scale-110 transition-transform"><i class="fa-solid fa-circle-check"></i></div>
+                    <p class="text-xs text-slate-400 font-bold">جاهز للنشر 🟢</p>
+                    <p id="stat-ready" class="text-3xl font-black text-emerald-400 mt-1">0</p>
+                    <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden"><div id="bar-ready" class="bg-emerald-500 h-full transition-all duration-500" style="width:0%"></div></div>
+                </div>
+                <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="absolute -right-4 -bottom-4 text-amber-950/20 text-7xl font-bold group-hover:scale-110 transition-transform"><i class="fa-solid fa-pen-ruler"></i></div>
+                    <p class="text-xs text-slate-400 font-bold">جاري العمل 🎨</p>
+                    <p id="stat-progress" class="text-3xl font-black text-amber-400 mt-1">0</p>
+                    <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden"><div id="bar-progress" class="bg-amber-500 h-full transition-all duration-500" style="width:0%"></div></div>
+                </div>
+                <div class="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="absolute -right-4 -bottom-4 text-rose-950/20 text-7xl font-bold group-hover:scale-110 transition-transform"><i class="fa-brands fa-tiktok"></i></div>
+                    <p class="text-xs text-slate-400 font-bold">فيديوهات وريلز 🎬</p>
+                    <p id="stat-videos" class="text-3xl font-black text-rose-400 mt-1">0</p>
+                    <div class="w-full bg-slate-800 h-1 mt-3 rounded-full overflow-hidden"><div id="bar-videos" class="bg-rose-500 h-full transition-all duration-500" style="width:0%"></div></div>
+                </div>
+            </section>
+
+            <section class="bg-slate-900/60 border border-slate-800/80 p-4 rounded-2xl mb-8 flex flex-col lg:flex-row gap-4 justify-between items-center">
+                <div class="relative w-full lg:max-w-xs">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="ابحث في المحتوى..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
+                </div>
+                <div class="flex flex-wrap gap-1.5 w-full lg:w-auto justify-start lg:justify-end overflow-x-auto pb-2 lg:pb-0">
+                    <button onclick="filterType('all')" id="filter-all" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">الكل</button>
+                    <button onclick="filterType('meme')" id="filter-meme" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">🤡 ميمز</button>
+                    <button onclick="filterType('reel')" id="filter-reel" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">🎬 ريلز وتيك توك</button>
+                    <button onclick="filterType('carousel')" id="filter-carousel" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">📸 كاروسيل</button>
+                    <button onclick="filterType('design')" id="filter-design" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">🎨 ديزاين وتفاعل</button>
+                </div>
+            </section>
+
+            <!-- Week Tabs -->
+            <section class="flex flex-wrap justify-center gap-2 mb-8 bg-slate-900 p-2 rounded-2xl border border-slate-800 max-w-lg mx-auto shadow-inner">
+                <button onclick="switchWeek(1)" id="tab-w1" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 bg-brand-600 text-white shadow-lg shadow-indigo-600/10">الأسبوع 1</button>
+                <button onclick="switchWeek(2)" id="tab-w2" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800">الأسبوع 2</button>
+                <button onclick="switchWeek(3)" id="tab-w3" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800">الأسبوع 3</button>
+                <button onclick="switchWeek(4)" id="tab-w4" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800">الأسبوع 4</button>
+            </section>
+
+            <section>
+                <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+                <div id="empty-state" class="hidden text-center py-20">
+                    <div class="text-6xl mb-4">📝</div>
+                    <h3 class="text-lg font-bold text-slate-300">لا يوجد محتوى بعد</h3>
+                    <p class="text-sm text-slate-500 mt-1">ابدأ بإضافة أول فكرة محتوى لك!</p>
+                    <button onclick="openAddModal()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all">
+                        <i class="fa-solid fa-plus ml-1"></i> إضافة فكرة
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 mt-auto">
+            <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p><span id="footer-name" class="text-slate-400 font-bold"> Academy</span> © 2026</p>
+                <div class="flex items-center gap-4 text-slate-400">
+                   
                 </div>
             </div>
-        </section>
+        </footer>
+    </div>
 
-        <!-- Filters & Search Toolbar -->
-        <section class="bg-slate-900/60 border border-slate-800/80 p-4 rounded-2xl mb-8 flex flex-col lg:flex-row gap-4 justify-between items-center">
-            
-            <!-- Search Input -->
-            <div class="relative w-full lg:max-w-xs">
-                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="ابحث عن ميمز، ستاربكس، بلبن..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
-            </div>
-
-            <!-- Content Type Filters -->
-            <div class="flex flex-wrap gap-1.5 w-full lg:w-auto justify-start lg:justify-end overflow-x-auto pb-2 lg:pb-0">
-                <button onclick="filterType('all')" id="filter-all" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">الكل</button>
-                <button onclick="filterType('meme')" id="filter-meme" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">🤡 ميمز</button>
-                <button onclick="filterType('reel')" id="filter-reel" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">🎬 ريلز وتيك توك</button>
-                <button onclick="filterType('carousel')" id="filter-carousel" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">📸 كاروسيل</button>
-                <button onclick="filterType('design')" id="filter-design" class="text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">🎨 ديزاين وتفاعل</button>
-            </div>
-
-        </section>
-
-        <!-- Week Navigator Tabs -->
-        <section class="flex flex-wrap justify-center gap-2 mb-8 bg-slate-900 p-2 rounded-2xl border border-slate-800 max-w-lg mx-auto shadow-inner">
-            <button onclick="switchWeek(1)" id="tab-w1" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 bg-brand-600 text-white shadow-lg shadow-indigo-600/10">الأسبوع 1</button>
-            <button onclick="switchWeek(2)" id="tab-w2" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800">الأسبوع 2</button>
-            <button onclick="switchWeek(3)" id="tab-w3" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800">الأسبوع 3</button>
-            <button onclick="switchWeek(4)" id="tab-w4" class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800">الأسبوع 4</button>
-        </section>
-
-        <!-- Cards Layout Grid -->
-        <section>
-            <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                <!-- Dynamic cards render here -->
-            </div>
-            
-            <!-- Empty State -->
-            <div id="empty-state" class="hidden text-center py-20">
-                <div class="text-6xl mb-4">🔍</div>
-                <h3 class="text-lg font-bold text-slate-300">لم نجد أي محتوى يطابق هذا البحث</h3>
-                <p class="text-sm text-slate-500 mt-1">تأكد من كتابة الكلمة بشكل صحيح أو تغيير الفلتر.</p>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Custom Alert/Confirm Modal -->
     <div id="confirm-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 relative text-center">
             <div class="text-4xl mb-3 text-amber-400" id="confirm-icon">⚠️</div>
             <h3 class="text-lg font-bold text-white mb-2" id="confirm-title">هل أنت متأكد؟</h3>
             <p class="text-sm text-slate-400 mb-6" id="confirm-text">سيتم مسح التغييرات الحالية وإعادة الضبط.</p>
             <div class="flex justify-center gap-3">
-                <button onclick="closeConfirmModal()" class="bg-slate-850 hover:bg-slate-800 border border-slate-750 text-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl transition-all">إلغاء</button>
-                <button id="confirm-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all">تأكيد ومسح</button>
+                <button onclick="closeConfirmModal()" class="bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl transition-all">إلغاء</button>
+                <button id="confirm-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all">تأكيد</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Form: Add/Edit Content Card -->
     <div id="modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative overflow-hidden transform scale-95 transition-transform duration-300">
-            
-            <!-- Modal Header -->
             <div class="flex justify-between items-center pb-4 border-b border-slate-800">
                 <h3 id="modal-title" class="text-lg font-bold text-white">إضافة فكرة محتوى جديدة</h3>
                 <button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
-            <!-- Modal Form Inputs -->
             <form id="content-form" onsubmit="saveCard(event)" class="space-y-4 mt-4">
                 <input type="hidden" id="card-id">
-                
-                <!-- Text / Script -->
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-2">فكرة البوست / نص الاسكريبت</label>
-                    <textarea id="card-text" required rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600" placeholder="مثال: ريل بلبن نجح عشان الرز بلبن بتاعه حلو؟ ولا في سر ثاني ورا النجاح؟"></textarea>
+                    <textarea id="card-text" required rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600 font-cairo" placeholder="اكتب فكرتك هنا..."></textarea>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
-                    <!-- Week Selection -->
                     <div>
                         <label class="block text-xs font-bold text-slate-400 mb-2">الأسبوع</label>
-                        <select id="card-week" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all">
+                        <select id="card-week" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all font-cairo">
                             <option value="1">الأسبوع 1</option>
                             <option value="2">الأسبوع 2</option>
                             <option value="3">الأسبوع 3</option>
                             <option value="4">الأسبوع 4</option>
                         </select>
                     </div>
-
-                    <!-- Type Selection -->
                     <div>
                         <label class="block text-xs font-bold text-slate-400 mb-2">نوع المحتوى</label>
-                        <select id="card-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all">
+                        <select id="card-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all font-cairo">
                             <option value="meme">🤡 ميمز</option>
                             <option value="reel">🎬 ريل فيديو</option>
                             <option value="tiktok">📱 تيك توك للمستر</option>
@@ -241,8 +367,6 @@
                         </select>
                     </div>
                 </div>
-
-                <!-- Status Selection -->
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-2">الحالة الحالية</label>
                     <div class="grid grid-cols-3 gap-2">
@@ -260,230 +384,293 @@
                         </label>
                     </div>
                 </div>
-
-                <!-- Action Button inside Modal -->
                 <div class="pt-4 border-t border-slate-800 flex justify-end gap-3">
                     <button type="button" onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm px-4 py-2.5 rounded-xl transition-all">إلغاء</button>
-                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/20 transition-all">حفظ التغييرات</button>
+                    <button type="submit" id="modal-save-btn" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
+                        <span id="modal-save-text">حفظ</span>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Notification system toast -->
     <div id="toast" class="fixed bottom-6 left-6 z-50 bg-slate-900 border border-slate-800 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <span id="toast-icon">✅</span>
-        <span id="toast-message" class="text-sm font-semibold text-slate-200 font-cairo">تم تحديث البيانات بنجاح!</span>
+        <span id="toast-message" class="text-sm font-semibold text-slate-200 font-cairo">تم!</span>
     </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p>تمت البرمجة والتوزيع التفاعلي الذكي لصالح منصة مستر أكرم لإدارة الأعمال © 2026</p>
-            <div class="flex items-center gap-4 text-slate-400">
-                <span class="hover:text-white transition-colors cursor-pointer"><i class="fa-brands fa-tiktok text-sm"></i> TikTok</span>
-                <span class="hover:text-white transition-colors cursor-pointer"><i class="fa-brands fa-instagram text-sm"></i> Instagram</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- App Logic Script -->
     <script>
-        const defaultData = [
-            // الأسبوع الأول
-            { id: "1", week: "1", type: "meme", text: "ميمز", status: "ready" },
-            { id: "2", week: "1", type: "carousel", text: "ديزاين مجالات عمل مسار الاعمال (carousel)", status: "progress" },
-            { id: "3", week: "1", type: "reel", text: "ريل نظام البكالوريا وتعريف المسارات", status: "pending" },
-            { id: "4", week: "1", type: "design", text: `"ديزاين لو إدارة الاعمال كانت شخص انت هتبقي مين فيهم ؟\nMarketing = شخص اجتماعي زيادة عن اللزوم \nHR = شخص بيحل خناقات\nFinance = شخص بيحسب كل حاجة جنيه جنيه"`, status: "ready" },
-            { id: "5", week: "1", type: "reel", text: "ادارة الاعمال × الكورة = منتخب ياخد كاس العالم !", status: "pending" },
-            { id: "6", week: "1", type: "tiktok", text: "ريل تيك توك للمستر", status: "pending" },
-            { id: "7", week: "1", type: "carousel", text: "(Carousel) ليه تختار إدارة اعمال", status: "progress" },
-            { id: "8", week: "1", type: "meme", text: "ميمز", status: "ready" },
+        const API_BASE = 'https://hamzamhammed.pythonanywhere.com';
 
-            // الأسبوع الثاني
-            { id: "9", week: "2", type: "reel", text: "ريل ازاي تخلي ال100 جنيه مليون جنيه", status: "pending" },
-            { id: "10", week: "2", type: "ai", text: "فكرة فيديو بال Ai", status: "progress" },
-            { id: "11", week: "2", type: "reel", text: "ريل الفرق بين إدارة الاعمال والمحاسبة", status: "pending" },
-            { id: "12", week: "2", type: "carousel", text: "ديزاين ليه بعض الشركات بتفشل ؟( carousel)", status: "progress" },
-            { id: "13", week: "2", type: "tiktok", text: "ريل تيك توك للمستر", status: "pending" },
-            { id: "14", week: "2", type: "carousel", text: "ليه تختار مستر اكرم ؟ carousel", status: "ready" },
-            { id: "15", week: "2", type: "meme", text: "ميمز", status: "ready" },
-            { id: "16", week: "2", type: "design", text: "ديزاين معلومة ف الإدارة", status: "ready" },
 
-            // الأسبوع الثالث
-            { id: "17", week: "3", type: "tiktok", text: "ريل تيك توك ريل غلطة بتعملها وانت بتختار تخصصك", status: "pending" },
-            { id: "18", week: "3", type: "tiktok", text: "ريل تيك توك للمستر", status: "pending" },
-            { id: "19", week: "3", type: "design", text: "ديزاين فكرة مشهد من فيلم عن البيزنس", status: "ready" },
-            { id: "20", week: "3", type: "reel", text: "ريل ايه هو تخصص ريادة الأعمال بشكل تفصيلي اكتر والشغل منوا عباره عن ايه", status: "pending" },
-            { id: "21", week: "3", type: "design", text: "ديزاين شخصية ناجحة نتعلم منها", status: "progress" },
-            { id: "22", week: "3", type: "meme", text: "ميمز", status: "ready" },
-            { id: "23", week: "3", type: "reel", text: "ريل مثال واقعي ل شركة ناجحه", status: "pending" },
-            { id: "24", week: "3", type: "design", text: "ديزاين لو قررت تعمل مشروع هتختار ايه (تبيع كتاكيت،تفتح ليفات تيك توك ...)", status: "ready" },
-
-            // الأسبوع الرابع
-            { id: "25", week: "4", type: "reel", text: "ريل عم احمد بتاع الطعميه ازاي متعلم إدارة أعمال وهنستخدم مصطلحات ف البيزنس", status: "pending" },
-            { id: "26", week: "4", type: "tiktok", text: "ريل تيك توك للمستر", status: "pending" },
-            { id: "27", week: "4", type: "carousel", text: "ليه ستاربكس مش مجرد قهوه ؟(carousel)", status: "progress" },
-            { id: "28", week: "4", type: "meme", text: "ميمز", status: "ready" },
-            { id: "29", week: "4", type: "reel", text: "ريل بلبن نجح عشان الرز بلبن بتاعه حلو؟ ولا في سر تاني ورا النجاح؟", status: "pending" },
-            { id: "30", week: "4", type: "interactive", text: "سؤال ف عالم البيزنس", status: "ready" },
-            { id: "31", week: "4", type: "meme", text: "ميمز", status: "ready" },
-            { id: "32", week: "4", type: "tiktok", text: "ريل تيك توك للمستر", status: "pending" }
-        ];
-
+        let currentUser = null;
         let state = [];
         let currentWeek = 1;
         let activeTypeFilter = 'all';
         let searchQuery = '';
         let pendingAction = null;
 
-        function initApp() {
-            const savedData = localStorage.getItem('akram_plan_data');
-            if (savedData) {
-                state = JSON.parse(savedData);
-            } else {
-                state = JSON.parse(JSON.stringify(defaultData));
-                localStorage.setItem('akram_plan_data', JSON.stringify(state));
+        function showScreen(name) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + name).classList.add('active');
+        }
+
+        function setLoading(btnId, textId, loading, label) {
+            const btn = document.getElementById(btnId);
+            const txt = document.getElementById(textId);
+            btn.disabled = loading;
+            txt.innerHTML = loading ? `<span class="spinner"></span>` : label;
+        }
+
+        function showError(id, textId, msg) {
+            document.getElementById(id).classList.add('show');
+            document.getElementById(textId).textContent = msg;
+        }
+
+        function hideError(id) { document.getElementById(id).classList.remove('show'); }
+
+        function getCookie(name) {
+            for (const c of document.cookie.split(';').map(c => c.trim())) {
+                if (c.startsWith(name + '=')) return decodeURIComponent(c.split('=')[1]);
             }
-            render();
+            return null;
         }
 
-        function showConfirmModal(title, text, btnText, icon, action) {
-            document.getElementById('confirm-title').innerText = title;
-            document.getElementById('confirm-text').innerText = text;
-            document.getElementById('confirm-icon').innerText = icon;
-            const btn = document.getElementById('confirm-btn');
-            btn.innerText = btnText;
-            
-            pendingAction = action;
-            document.getElementById('confirm-modal').classList.remove('hidden');
-            
-            btn.onclick = function() {
-                if (pendingAction) pendingAction();
-                closeConfirmModal();
-            };
+        function jsonHeaders() {
+            return { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') };
         }
 
-        function closeConfirmModal() {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            pendingAction = null;
+        async function apiCall(url, method = 'GET', body = null) {
+            const opts = { method, credentials: 'include', headers: jsonHeaders() };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(API_BASE + url, opts);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || data.detail || 'حدث خطأ');
+            return data;
         }
 
-        function confirmReset() {
-            showConfirmModal(
-                "إعادة ضبط الخطة؟",
-                "هل أنت متأكد من رغبتك في إعادة ضبط الخطة الأصلية وحذف جميع التعديلات والإضافات التي قمت بها؟",
-                "نعم، إعادة ضبط",
-                "🔄",
-                function() {
-                    state = JSON.parse(JSON.stringify(defaultData));
-                    localStorage.setItem('akram_plan_data', JSON.stringify(state));
-                    showToast("🔄", "تم إعادة ضبط الخطة الأصلية بالكامل!");
-                    render();
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') { input.type = 'text'; icon.className = 'fa-regular fa-eye-slash text-sm'; }
+            else { input.type = 'password'; icon.className = 'fa-regular fa-eye text-sm'; }
+        }
+
+        function checkPasswordStrength(val) {
+            const bars = ['bar-s1','bar-s2','bar-s3','bar-s4'].map(id => document.getElementById(id));
+            const label = document.getElementById('strength-label');
+            const colors = ['bg-rose-500','bg-orange-400','bg-yellow-400','bg-emerald-500'];
+            const labels = ['','ضعيفة','مقبولة','جيدة','قوية جداً'];
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            bars.forEach((bar, i) => { bar.className = 'strength-bar ' + (i < score ? colors[score-1] : ''); });
+            label.textContent = val.length > 0 ? `قوة كلمة المرور: ${labels[score]}` : '';
+            label.style.color = score <= 1 ? '#f87171' : score === 2 ? '#fb923c' : score === 3 ? '#facc15' : '#4ade80';
+        }
+
+        function switchAuthTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+            document.getElementById('form-signup').classList.toggle('hidden', isLogin);
+            document.getElementById('tab-login').className = `flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${isLogin ? 'tab-active' : 'tab-inactive'}`;
+            document.getElementById('tab-signup').className = `flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${!isLogin ? 'tab-active' : 'tab-inactive'}`;
+            hideError('login-error'); hideError('signup-error');
+        }
+
+        async function handleSignup() {
+            const email    = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirm  = document.getElementById('signup-confirm').value;
+            hideError('signup-error');
+
+            if (!email || !password || !confirm) return showError('signup-error','signup-error-text','برجاء ملء جميع الحقول');
+            if (password.length < 8)              return showError('signup-error','signup-error-text','كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+            if (password !== confirm)              return showError('signup-error','signup-error-text','كلمتا المرور غير متطابقتان');
+
+            setLoading('signup-btn','signup-btn-text', true, '');
+            try {
+                await fetch(`${API_BASE}/`, { credentials: 'include' });
+                const data = await apiCall('/signup/', 'POST', { email, password });
+                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '' };
+                localStorage.setItem('akram_session', JSON.stringify(currentUser));
+                currentUser.teacher_name ? loadDashboard() : showScreen('setup');
+            } catch(err) {
+                showError('signup-error','signup-error-text', err.message === 'Failed to fetch' ? 'تعذر الاتصال بالسيرفر' : err.message);
+            } finally {
+                setLoading('signup-btn','signup-btn-text', false, 'إنشاء الحساب');
+            }
+        }
+
+        async function handleLogin() {
+            const email    = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            hideError('login-error');
+
+            if (!email || !password) return showError('login-error','login-error-text','برجاء إدخال البريد الإلكتروني وكلمة المرور');
+
+            setLoading('login-btn','login-btn-text', true, '');
+            try {
+                await fetch(`${API_BASE}/`, { credentials: 'include' });
+                const data = await apiCall('/login/', 'POST', { email, password });
+                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '', subject: data.subject || '' };
+                localStorage.setItem('akram_session', JSON.stringify(currentUser));
+                currentUser.teacher_name ? loadDashboard() : showScreen('setup');
+            } catch(err) {
+                showError('login-error','login-error-text', err.message === 'Failed to fetch' ? 'تعذر الاتصال بالسيرفر' : err.message);
+            } finally {
+                setLoading('login-btn','login-btn-text', false, 'دخول إلى لوحة التحكم');
+            }
+        }
+
+        async function handleSetup() {
+            const name    = document.getElementById('teacher-name').value.trim();
+            const subject = document.getElementById('teacher-subject').value.trim();
+            hideError('setup-error');
+
+            if (!name)    return showError('setup-error','setup-error-text','برجاء كتابة اسم المدرس أو الأكاديمية');
+            if (!subject) return showError('setup-error','setup-error-text','برجاء كتابة التخصص أو المادة');
+
+            const btn = document.getElementById('setup-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner"></span>`;
+            try {
+                const data = await apiCall('/add-teacher/', 'POST', { teacher_name: name, subject });
+                currentUser.teacher_name = name;
+                currentUser.subject = subject;
+                localStorage.setItem('akram_session', JSON.stringify(currentUser));
+                loadDashboard();
+            } catch(err) {
+                showError('setup-error','setup-error-text', err.message === 'Failed to fetch' ? 'تعذر الاتصال بالسيرفر' : err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>ابدأ الآن</span><i class="fa-solid fa-arrow-left text-xs"></i>`;
+            }
+        }
+
+        function handleLogout() {
+            showConfirmModal('تسجيل الخروج؟','هل تريد تسجيل الخروج من حسابك؟','نعم، خروج','👋', async function() {
+                try { await apiCall('/logout/', 'POST'); } catch(e) {}
+                localStorage.removeItem('akram_session');
+                currentUser = null; state = [];
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+                switchAuthTab('login');
+                showScreen('auth');
+            });
+        }
+
+        async function loadDashboard() {
+            const name = currentUser.teacher_name || currentUser.email;
+            document.getElementById('dashboard-title').textContent = name;
+            document.getElementById('footer-name').textContent = name;
+            document.getElementById('user-email-display').textContent = currentUser.email;
+            document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('dropdown-name').textContent = name;
+            document.getElementById('dropdown-email').textContent = currentUser.email;
+
+            showScreen('dashboard');
+
+            try {
+                const data = await apiCall('/api/items/');
+                state = data.items;
+                render();
+            } catch(err) {
+                showToast('❌', 'تعذر تحميل البيانات');
+            }
+        }
+
+        async function initApp() {
+            const session = localStorage.getItem('akram_session');
+            if (session) {
+                try {
+                    currentUser = JSON.parse(session);
+                    // تحقق إن السيشن لا تزال صالحة
+                    await fetch(`${API_BASE}/`, { credentials: 'include' });
+                    if (currentUser.teacher_name) {
+                        await loadDashboard();
+                    } else {
+                        showScreen('setup');
+                    }
+                } catch(e) {
+                    showScreen('auth');
                 }
-            );
+            } else {
+                showScreen('auth');
+            }
         }
 
         function render() {
-            document.getElementById('stat-total').innerText = state.length;
-            
-            const readyCount = state.filter(item => item.status === 'ready').length;
-            const progressCount = state.filter(item => item.status === 'progress').length;
-            const videoCount = state.filter(item => ['reel', 'tiktok', 'ai'].includes(item.type)).length;
+            const total         = state.length;
+            const readyCount    = state.filter(i => i.status === 'ready').length;
+            const progressCount = state.filter(i => i.status === 'progress').length;
+            const videoCount    = state.filter(i => ['reel','tiktok','ai'].includes(i.type)).length;
 
-            document.getElementById('stat-ready').innerText = readyCount;
+            document.getElementById('stat-total').innerText    = total;
+            document.getElementById('stat-ready').innerText    = readyCount;
             document.getElementById('stat-progress').innerText = progressCount;
-            document.getElementById('stat-videos').innerText = videoCount;
+            document.getElementById('stat-videos').innerText   = videoCount;
 
-            document.getElementById('bar-ready').style.width = `${(readyCount / state.length) * 100}%`;
-            document.getElementById('bar-progress').style.width = `${(progressCount / state.length) * 100}%`;
-            document.getElementById('bar-videos').style.width = `${(videoCount / state.length) * 100}%`;
+            if (total > 0) {
+                document.getElementById('bar-ready').style.width    = `${(readyCount/total)*100}%`;
+                document.getElementById('bar-progress').style.width = `${(progressCount/total)*100}%`;
+                document.getElementById('bar-videos').style.width   = `${(videoCount/total)*100}%`;
+            }
 
-            const filteredCards = state.filter(item => {
-                const matchesWeek = item.week == currentWeek;
-                const matchesSearch = item.text.toLowerCase().includes(searchQuery.toLowerCase());
-                let matchesType = true;
+            const filtered = state.filter(item => {
+                const matchWeek   = item.week == currentWeek;
+                const matchSearch = item.text.toLowerCase().includes(searchQuery.toLowerCase());
+                let matchType     = true;
                 if (activeTypeFilter !== 'all') {
-                    if (activeTypeFilter === 'reel') {
-                        matchesType = ['reel', 'tiktok', 'ai'].includes(item.type);
-                    } else if (activeTypeFilter === 'design') {
-                        matchesType = ['design', 'interactive'].includes(item.type);
-                    } else {
-                        matchesType = item.type === activeTypeFilter;
-                    }
+                    if (activeTypeFilter === 'reel')   matchType = ['reel','tiktok','ai'].includes(item.type);
+                    else if (activeTypeFilter === 'design') matchType = ['design','interactive'].includes(item.type);
+                    else matchType = item.type === activeTypeFilter;
                 }
-                return matchesWeek && matchesSearch && matchesType;
+                return matchWeek && matchSearch && matchType;
             });
 
-            const grid = document.getElementById('cards-grid');
-            const emptyState = document.getElementById('empty-state');
+            const grid  = document.getElementById('cards-grid');
+            const empty = document.getElementById('empty-state');
             grid.innerHTML = '';
 
-            if (filteredCards.length === 0) {
-                emptyState.classList.remove('hidden');
+            if (filtered.length === 0) {
+                empty.classList.remove('hidden');
             } else {
-                emptyState.classList.add('hidden');
-                filteredCards.forEach(card => {
-                    const cardEl = createCardElement(card);
-                    grid.appendChild(cardEl);
-                });
+                empty.classList.add('hidden');
+                filtered.forEach(card => grid.appendChild(createCardElement(card)));
             }
         }
 
         function createCardElement(card) {
             const div = document.createElement('div');
             div.className = "bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 hover:shadow-xl transition-all relative group";
-            
-            let typeBadgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
-            let typeIcon = "fa-face-laugh-squint";
-            let typeLabel = "🤡 ميمز";
 
-            switch (card.type) {
-                case "carousel":
-                    typeBadgeColor = "bg-blue-500/10 text-blue-400 border-blue-500/20";
-                    typeIcon = "fa-images";
-                    typeLabel = "📸 كاروسيل";
-                    break;
-                case "reel":
-                    typeBadgeColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
-                    typeIcon = "fa-clapperboard";
-                    typeLabel = "🎬 ريل فيديو";
-                    break;
-                case "tiktok":
-                    typeBadgeColor = "bg-teal-500/10 text-teal-400 border-teal-500/20";
-                    typeIcon = "fa-mobile-screen-button";
-                    typeLabel = "📱 تيك توك للمستر";
-                    break;
-                case "design":
-                    typeBadgeColor = "bg-violet-500/10 text-violet-400 border-violet-500/20";
-                    typeIcon = "fa-compass-drafting";
-                    typeLabel = "🎨 ديزاين";
-                    break;
-                case "ai":
-                    typeBadgeColor = "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
-                    typeIcon = "fa-robot";
-                    typeLabel = "🤖 بالذكاء الاصطناعي";
-                    break;
-                case "interactive":
-                    typeBadgeColor = "bg-orange-500/10 text-orange-400 border-orange-500/20";
-                    typeIcon = "fa-comments";
-                    typeLabel = "❓ تفاعل";
-                    break;
-            }
+            const typeMap = {
+                meme:        { color: "bg-amber-500/10 text-amber-400 border-amber-500/20",   icon: "fa-face-laugh-squint", label: "🤡 ميمز" },
+                carousel:    { color: "bg-blue-500/10 text-blue-400 border-blue-500/20",       icon: "fa-images",            label: "📸 كاروسيل" },
+                reel:        { color: "bg-rose-500/10 text-rose-400 border-rose-500/20",       icon: "fa-clapperboard",      label: "🎬 ريل فيديو" },
+                tiktok:      { color: "bg-teal-500/10 text-teal-400 border-teal-500/20",       icon: "fa-mobile-screen-button", label: "📱 تيك توك للمستر" },
+                design:      { color: "bg-violet-500/10 text-violet-400 border-violet-500/20", icon: "fa-compass-drafting",  label: "🎨 ديزاين" },
+                ai:          { color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",       icon: "fa-robot",             label: "🤖 بالذكاء الاصطناعي" },
+                interactive: { color: "bg-orange-500/10 text-orange-400 border-orange-500/20", icon: "fa-comments",         label: "❓ تفاعل" }
+            };
+            const t = typeMap[card.type] || typeMap['meme'];
 
-            let statusColor = "bg-rose-500/10 text-rose-400 border-rose-500/20";
-            if (card.status === 'ready') {
-                statusColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-            } else if (card.status === 'progress') {
-                statusColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
-            }
+            const statusColor = card.status === 'ready'
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                : card.status === 'progress'
+                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                : "bg-rose-500/10 text-rose-400 border-rose-500/20";
+
+            const safeText = card.text.replace(/`/g,'\\`').replace(/\$/g,'\\$');
 
             div.innerHTML = `
                 <div>
                     <div class="flex justify-between items-start mb-4">
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-md border ${typeBadgeColor} flex items-center gap-1.5">
-                            <i class="fa-solid ${typeIcon}"></i>
-                            ${typeLabel}
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-md border ${t.color} flex items-center gap-1.5">
+                            <i class="fa-solid ${t.icon}"></i> ${t.label}
                         </span>
                         <span class="text-xs text-slate-500 font-mono font-semibold">#${card.id}</span>
                     </div>
@@ -491,14 +678,14 @@
                 </div>
                 <div class="mt-6 pt-4 border-t border-slate-800/80 flex justify-between items-center">
                     <div class="relative">
-                        <select onchange="updateCardStatus('${card.id}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border bg-slate-950 hover:bg-slate-900 border-slate-800 cursor-pointer focus:outline-none transition-colors ${statusColor}">
-                            <option value="pending" ${card.status === 'pending' ? 'selected' : ''}>🎥 محتاج تصوير</option>
-                            <option value="progress" ${card.status === 'progress' ? 'selected' : ''}>🎨 قيد العمل</option>
-                            <option value="ready" ${card.status === 'ready' ? 'selected' : ''}>🟢 جاهز للنشر</option>
+                        <select onchange="updateCardStatus('${card.id}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border bg-slate-950 hover:bg-slate-900 border-slate-800 cursor-pointer focus:outline-none transition-colors font-cairo ${statusColor}">
+                            <option value="pending"  ${card.status==='pending' ?'selected':''}>🎥 محتاج تصوير</option>
+                            <option value="progress" ${card.status==='progress'?'selected':''}>🎨 قيد العمل</option>
+                            <option value="ready"    ${card.status==='ready'   ?'selected':''}>🟢 جاهز للنشر</option>
                         </select>
                     </div>
                     <div class="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                        <button onclick="copyToClipboard(this, \`${card.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center transition-all" title="نسخ النص">
+                        <button onclick="copyToClipboard(this, \`${safeText}\`)" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center transition-all" title="نسخ">
                             <i class="fa-regular fa-copy"></i>
                         </button>
                         <button onclick="openEditModal('${card.id}')" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-indigo-500/50 bg-slate-950 hover:bg-indigo-600/10 text-slate-400 hover:text-indigo-400 flex items-center justify-center transition-all" title="تعديل">
@@ -513,64 +700,48 @@
             return div;
         }
 
-        function updateCardStatus(cardId, newStatus) {
-            const card = state.find(item => item.id == cardId);
-            if (card) {
-                card.status = newStatus;
-                localStorage.setItem('akram_plan_data', JSON.stringify(state));
-                showToast("✅", "تم تحديث حالة الفكرة بنجاح!");
+
+        async function updateCardStatus(cardId, newStatus) {
+            try {
+                await apiCall(`/api/items/${cardId}/`, 'PATCH', { status: newStatus });
+                const card = state.find(i => i.id == cardId);
+                if (card) card.status = newStatus;
+                showToast('✅', 'تم تحديث الحالة بنجاح!');
                 render();
+            } catch(err) {
+                showToast('❌', 'تعذر تحديث الحالة');
             }
         }
 
         function copyToClipboard(button, text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-
+            navigator.clipboard.writeText(text).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+            });
             const icon = button.querySelector('i');
             icon.className = "fa-solid fa-check text-emerald-400";
-            showToast("📋", "تم نسخ نص المنشور بنجاح!");
-            setTimeout(() => {
-                icon.className = "fa-regular fa-copy";
-            }, 2000);
+            showToast('📋', 'تم النسخ!');
+            setTimeout(() => { icon.className = "fa-regular fa-copy"; }, 2000);
         }
 
-        function switchWeek(weekNum) {
-            currentWeek = weekNum;
+        function switchWeek(w) {
+            currentWeek = w;
             for (let i = 1; i <= 4; i++) {
-                const tab = document.getElementById('tab-w' + i);
-                if (i === weekNum) {
-                    tab.className = "flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 bg-brand-600 text-white shadow-lg shadow-indigo-600/10";
-                } else {
-                    tab.className = "flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800";
-                }
+                document.getElementById('tab-w' + i).className = `flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${i===w ? 'bg-brand-600 text-white shadow-lg shadow-indigo-600/10' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`;
             }
             render();
         }
 
         function filterType(type) {
             activeTypeFilter = type;
-            const filterButtons = ['all', 'meme', 'reel', 'carousel', 'design'];
-            
-            filterButtons.forEach(btn => {
-                const el = document.getElementById('filter-' + btn);
-                if (btn === type) {
-                    el.className = "text-xs font-bold px-3.5 py-2 rounded-lg transition-all bg-indigo-600/20 text-indigo-400 border border-indigo-500/30";
-                } else {
-                    el.className = "text-xs font-bold px-3.5 py-2 rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50";
-                }
+            ['all','meme','reel','carousel','design'].forEach(f => {
+                document.getElementById('filter-'+f).className = `text-xs font-bold px-3.5 py-2 rounded-lg transition-all ${f===type ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`;
             });
             render();
         }
 
-        function handleSearch(val) {
-            searchQuery = val;
-            render();
-        }
+        function handleSearch(val) { searchQuery = val; render(); }
 
         function openAddModal() {
             document.getElementById('modal-title').innerText = "إضافة فكرة محتوى جديدة";
@@ -579,106 +750,108 @@
             document.getElementById('card-week').value = currentWeek;
             document.getElementById('card-type').value = "meme";
             document.querySelector('input[name="card-status"][value="pending"]').checked = true;
-
-            const modal = document.getElementById('modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('.transform').classList.remove('scale-95');
-            }, 10);
+            document.getElementById('modal-save-text').textContent = 'إضافة';
+            showModal();
         }
 
         function openEditModal(cardId) {
-            const card = state.find(item => item.id == cardId);
+            const card = state.find(i => i.id == cardId);
             if (!card) return;
-
             document.getElementById('modal-title').innerText = `تعديل الفكرة #${card.id}`;
-            document.getElementById('card-id').value = card.id;
+            document.getElementById('card-id').value   = card.id;
             document.getElementById('card-text').value = card.text;
             document.getElementById('card-week').value = card.week;
             document.getElementById('card-type').value = card.type;
-            
-            const statusRadio = document.querySelector(`input[name="card-status"][value="${card.status}"]`);
-            if (statusRadio) statusRadio.checked = true;
+            const r = document.querySelector(`input[name="card-status"][value="${card.status}"]`);
+            if (r) r.checked = true;
+            document.getElementById('modal-save-text').textContent = 'حفظ التعديل';
+            showModal();
+        }
 
+        function showModal() {
             const modal = document.getElementById('modal');
             modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('.transform').classList.remove('scale-95');
-            }, 10);
+            setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('.transform').classList.remove('scale-95'); }, 10);
         }
 
         function closeModal() {
             const modal = document.getElementById('modal');
-            modal.classList.add('opacity-0');
-            modal.querySelector('.transform').classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            modal.classList.add('opacity-0'); modal.querySelector('.transform').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        function saveCard(event) {
+        async function saveCard(event) {
             event.preventDefault();
-            const id = document.getElementById('card-id').value;
-            const text = document.getElementById('card-text').value;
-            const week = document.getElementById('card-week').value;
-            const type = document.getElementById('card-type').value;
+            const id     = document.getElementById('card-id').value;
+            const text   = document.getElementById('card-text').value;
+            const week   = document.getElementById('card-week').value;
+            const type   = document.getElementById('card-type').value;
             const status = document.querySelector('input[name="card-status"]:checked').value;
 
-            if (id) {
-                const card = state.find(item => item.id == id);
-                if (card) {
-                    card.text = text;
-                    card.week = week;
-                    card.type = type;
-                    card.status = status;
-                }
-                showToast("✏️", "تم حفظ وتعديل الفكرة بنجاح!");
-            } else {
-                const newId = (state.length > 0) ? (Math.max(...state.map(c => parseInt(c.id))) + 1).toString() : "1";
-                const newCard = { id: newId, week, type, text, status };
-                state.push(newCard);
-                showToast("✨", "تم إضافة الفكرة الجديدة للخطة بنجاح!");
-            }
+            const btn = document.getElementById('modal-save-btn');
+            btn.disabled = true;
+            document.getElementById('modal-save-text').innerHTML = `<span class="spinner"></span>`;
 
-            localStorage.setItem('akram_plan_data', JSON.stringify(state));
-            closeModal();
-            render();
+            try {
+                if (id) {
+                    const data = await apiCall(`/api/items/${id}/`, 'PATCH', { text, week: parseInt(week), type, status });
+                    const idx = state.findIndex(i => i.id == id);
+                    if (idx !== -1) state[idx] = data.item;
+                    showToast('✏️', 'تم حفظ التعديل بنجاح!');
+                } else {
+                    const data = await apiCall('/api/items/create/', 'POST', { text, week: parseInt(week), type, status });
+                    state.push(data.item);
+                    showToast('✨', 'تمت إضافة الفكرة بنجاح!');
+                }
+                closeModal();
+                render();
+            } catch(err) {
+                showToast('❌', 'حدث خطأ في الحفظ');
+            } finally {
+                btn.disabled = false;
+                document.getElementById('modal-save-text').textContent = id ? 'حفظ التعديل' : 'إضافة';
+            }
         }
 
         function deleteCard(cardId) {
-            showConfirmModal(
-                "حذف الفكرة؟",
-                "هل أنت متأكد من رغبتك في حذف هذه الفكرة نهائياً من خطة المحتوى؟",
-                "نعم، احذف الفكرة",
-                "🗑️",
-                function() {
-                    state = state.filter(item => item.id != cardId);
-                    localStorage.setItem('akram_plan_data', JSON.stringify(state));
-                    showToast("🗑️", "تم حذف الفكرة بنجاح!");
+            showConfirmModal('حذف الفكرة؟','هل أنت متأكد من رغبتك في حذف هذه الفكرة نهائياً؟','نعم، احذف','🗑️', async function() {
+                try {
+                    await apiCall(`/api/items/${cardId}/delete/`, 'DELETE');
+                    state = state.filter(i => i.id != cardId);
+                    showToast('🗑️', 'تم حذف الفكرة بنجاح!');
                     render();
+                } catch(err) {
+                    showToast('❌', 'تعذر حذف الفكرة');
                 }
-            );
+            });
+        }
+
+        function showConfirmModal(title, text, btnText, icon, action) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-text').innerText  = text;
+            document.getElementById('confirm-icon').innerText  = icon;
+            const btn = document.getElementById('confirm-btn');
+            btn.innerText = btnText;
+            pendingAction = action;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            btn.onclick = function() { if (pendingAction) pendingAction(); closeConfirmModal(); };
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            pendingAction = null;
         }
 
         function showToast(icon, message) {
             const toast = document.getElementById('toast');
-            document.getElementById('toast-icon').innerText = icon;
+            document.getElementById('toast-icon').innerText   = icon;
             document.getElementById('toast-message').innerText = message;
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            toast.classList.remove('translate-y-20','opacity-0');
+            toast.classList.add('translate-y-0','opacity-100');
+            setTimeout(() => { toast.classList.remove('translate-y-0','opacity-100'); toast.classList.add('translate-y-20','opacity-0'); }, 3000);
         }
 
-        window.onload = function() {
-            initApp();
-        };
+        window.onload = initApp;
     </script>
 </body>
 </html>
