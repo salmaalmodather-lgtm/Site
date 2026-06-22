@@ -4,11 +4,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-b0+)f-hk_qv(n#5cpig1_ur^e8#-2kp!4z+gtg&lf2494=j5('
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'hamzamhammed.pythonanywhere.com',
+    '127.0.0.1',
+    'localhost',
+]
 
-# ✅ INSTALLED_APPS كاملة مع corsheaders
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -16,7 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',  # ← أُضيف هنا
+    'corsheaders',
     'core',
 ]
 
@@ -24,9 +27,8 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard_redirect'
 LOGOUT_REDIRECT_URL = 'login'
 
-# ✅ MIDDLEWARE كاملة مع CorsMiddleware في الأول
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # ← لازم تكون أول حاجة
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -74,15 +76,28 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+# Static files
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# ✅ CORS Settings
+# CORS - السماح لـ Vercel يكلم Django
 CORS_ALLOWED_ORIGINS = [
+    "https://academy-saloma.vercel.app",
     "http://127.0.0.1:5500",
     "http://localhost:5500",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF
 CSRF_TRUSTED_ORIGINS = [
+    "https://academy-saloma.vercel.app",
+    "https://hamzamhammed.pythonanywhere.com",
     "http://127.0.0.1:5500",
     "http://localhost:5500",
 ]
+
+# Session cookie - مهم عشان الفرونت على دومين مختلف
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
