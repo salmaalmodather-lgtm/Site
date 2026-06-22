@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}منصة مستر أكرم{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { cairo: ['Cairo', 'sans-serif'] } } }
+        }
+    </script>
+    <style>body{font-family:'Cairo',sans-serif;}</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center font-cairo p-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-3xl shadow-lg shadow-indigo-500/20">💼</div>
+            <h1 class="text-xl font-extrabold mt-3">منصة خطة محتوى المدرسين</h1>
+            <p class="text-xs text-slate-400 mt-1">{% block subtitle %}{% endblock %}</p>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>
