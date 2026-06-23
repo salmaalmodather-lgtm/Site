@@ -44,13 +44,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .auth-bg { background: radial-gradient(ellipse at 20% 50%, rgba(79,70,229,0.15) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.1) 0%, transparent 50%), #020617; }
         .strength-bar { height: 3px; border-radius: 99px; transition: all 0.3s; background: #1e293b; flex: 1; }
-        
-        select option {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 600;
-        }
+        select option { background-color: #0f172a; color: #f8fafc; font-family: 'Cairo', sans-serif; font-weight: 600; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-cairo selection:bg-indigo-500 selection:text-white">
@@ -415,7 +409,11 @@
         }
 
         function jsonHeaders() {
-            return { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') };
+            const headers = { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') };
+            if (currentUser && currentUser.token) {
+                headers['Authorization'] = 'Bearer ' + currentUser.token;
+            }
+            return headers;
         }
 
         async function apiCall(url, method = 'GET', body = null) {
@@ -472,7 +470,13 @@
             try {
                 await fetch(`${API_BASE}/`, { credentials: 'include' });
                 const data = await apiCall('/signup/', 'POST', { email, password });
-                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '', teacher_id: data.teacher_id || null, teachers: data.teachers || [] };
+                currentUser = { 
+                    id: data.user_id, email: data.email, 
+                    teacher_name: data.teacher_name || '', 
+                    teacher_id: data.teacher_id || null, 
+                    teachers: data.teachers || [],
+                    token: data.token 
+                };
                 localStorage.setItem('akram_session', JSON.stringify(currentUser));
                 currentUser.teacher_id ? loadDashboard() : showScreen('setup');
             } catch(err) {
@@ -493,7 +497,13 @@
             try {
                 await fetch(`${API_BASE}/`, { credentials: 'include' });
                 const data = await apiCall('/login/', 'POST', { email, password });
-                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '', teacher_id: data.teacher_id || null, teachers: data.teachers || [] };
+                currentUser = { 
+                    id: data.user_id, email: data.email, 
+                    teacher_name: data.teacher_name || '', 
+                    teacher_id: data.teacher_id || null, 
+                    teachers: data.teachers || [],
+                    token: data.token
+                };
                 localStorage.setItem('akram_session', JSON.stringify(currentUser));
                 currentUser.teacher_id ? loadDashboard() : showScreen('setup');
             } catch(err) {
@@ -885,8 +895,9 @@
                 <div style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 40px 20px; border-radius: 16px; text-align: center; margin-bottom: 40px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);">
                     <div style="font-size: 48px; margin-bottom: 15px;">💼</div>
                     <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">EduPlan</h1>
+                    <p style="margin: 8px 0 0 0; font-size: 18px; opacity: 0.9;">خطة المحتوى الاحترافية</p>
                     <div style="margin-top: 25px; display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 99px; font-weight: bold; font-size: 15px; border: 1px solid rgba(255,255,255,0.3);">
-                       ${currentUser.teacher_name || 'غير محدد'}
+                        العميل / المدرس: ${currentUser.teacher_name || 'غير محدد'}
                     </div>
                 </div>
             `;
