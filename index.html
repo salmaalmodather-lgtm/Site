@@ -139,7 +139,7 @@
         <div class="text-center mb-8">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-black text-3xl shadow-2xl shadow-indigo-500/30 text-white mx-auto mb-4">🎓</div>
             <h1 class="text-2xl font-extrabold text-white">مرحباً بك!</h1>
-            <p class="text-sm text-slate-400 mt-1">أنشئ ملفك الشخصي لبدء إدارة محتواك</p>
+            <p class="text-sm text-slate-400 mt-1">أضف بيانات العميل / المدرس</p>
         </div>
 
         <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden backdrop-blur-sm p-6 space-y-5">
@@ -156,12 +156,15 @@
                     <i class="fa-solid fa-book absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
                     <input type="text" id="teacher-subject" class="auth-input pr-10" placeholder="مثال: إدارة الأعمال، تسويق، محاسبة..." maxlength="80">
                 </div>
-                <p class="text-xs text-slate-500 mt-1.5">اكتب تخصصك بحرية</p>
+                <p class="text-xs text-slate-500 mt-1.5">اكتب التخصص بحرية</p>
             </div>
             <p id="setup-error" class="error-msg"><i class="fa-solid fa-circle-exclamation ml-1"></i><span id="setup-error-text">برجاء ملء جميع الحقول</span></p>
             <button onclick="handleSetup()" id="setup-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                <span>ابدأ الآن</span>
+                <span>حفظ وبدء العمل</span>
                 <i class="fa-solid fa-arrow-left text-xs"></i>
+            </button>
+            <button onclick="loadDashboard()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm py-3 rounded-xl shadow-lg transition-all flex items-center justify-center mt-2">
+                إلغاء
             </button>
         </div>
     </div>
@@ -180,6 +183,17 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-center">
+                    
+                    <div id="teacher-selector-wrapper" class="hidden flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 shadow-lg">
+                        <i class="fa-solid fa-users text-slate-400 text-xs"></i>
+                        <select id="teacher-select" onchange="switchTeacher(this.value)" class="bg-transparent text-white font-bold text-sm outline-none cursor-pointer font-cairo">
+                        </select>
+                        <div class="w-px h-4 bg-slate-600 mx-1"></div>
+                        <button onclick="openAddTeacher()" class="text-emerald-400 hover:text-emerald-300 transition-colors" title="إضافة عميل جديد">
+                            <i class="fa-solid fa-user-plus text-sm"></i>
+                        </button>
+                    </div>
+
                     <button onclick="downloadPDF()" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2">
                         <i class="fa-solid fa-file-pdf text-rose-400"></i> مشاركة الخطة ك PDF 
                     </button>
@@ -451,9 +465,9 @@
             try {
                 await fetch(`${API_BASE}/`, { credentials: 'include' });
                 const data = await apiCall('/signup/', 'POST', { email, password });
-                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '' };
+                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '', teacher_id: data.teacher_id || null, teachers: data.teachers || [] };
                 localStorage.setItem('akram_session', JSON.stringify(currentUser));
-                currentUser.teacher_name ? loadDashboard() : showScreen('setup');
+                currentUser.teacher_id ? loadDashboard() : showScreen('setup');
             } catch(err) {
                 showError('signup-error','signup-error-text', err.message === 'Failed to fetch' ? 'تعذر الاتصال بالسيرفر' : err.message);
             } finally {
@@ -472,9 +486,9 @@
             try {
                 await fetch(`${API_BASE}/`, { credentials: 'include' });
                 const data = await apiCall('/login/', 'POST', { email, password });
-                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '', subject: data.subject || '' };
+                currentUser = { id: data.user_id, email: data.email, teacher_name: data.teacher_name || '', teacher_id: data.teacher_id || null, teachers: data.teachers || [] };
                 localStorage.setItem('akram_session', JSON.stringify(currentUser));
-                currentUser.teacher_name ? loadDashboard() : showScreen('setup');
+                currentUser.teacher_id ? loadDashboard() : showScreen('setup');
             } catch(err) {
                 showError('login-error','login-error-text', err.message === 'Failed to fetch' ? 'تعذر الاتصال بالسيرفر' : err.message);
             } finally {
@@ -482,28 +496,46 @@
             }
         }
 
+        function openAddTeacher() {
+            document.getElementById('teacher-name').value = '';
+            document.getElementById('teacher-subject').value = '';
+            hideError('setup-error');
+            showScreen('setup');
+        }
+
         async function handleSetup() {
             const name    = document.getElementById('teacher-name').value.trim();
             const subject = document.getElementById('teacher-subject').value.trim();
             hideError('setup-error');
 
-            if (!name)    return showError('setup-error','setup-error-text','برجاء كتابة اسم المدرس أو الأكاديمية');
-            if (!subject) return showError('setup-error','setup-error-text','برجاء كتابة التخصص أو المادة');
+            if (!name)    return showError('setup-error','setup-error-text','برجاء كتابة اسم العميل/المدرس');
+            if (!subject) return showError('setup-error','setup-error-text','برجاء كتابة التخصص');
 
             const btn = document.getElementById('setup-btn');
             btn.disabled = true;
             btn.innerHTML = `<span class="spinner"></span>`;
             try {
                 const data = await apiCall('/add-teacher/', 'POST', { teacher_name: name, subject });
-                currentUser.teacher_name = name;
-                currentUser.subject = subject;
+                currentUser.teacher_name = data.teacher_name;
+                currentUser.teacher_id = data.teacher_id;
+                currentUser.teachers = data.teachers;
                 localStorage.setItem('akram_session', JSON.stringify(currentUser));
                 loadDashboard();
             } catch(err) {
                 showError('setup-error','setup-error-text', err.message === 'Failed to fetch' ? 'تعذر الاتصال بالسيرفر' : err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<span>ابدأ الآن</span><i class="fa-solid fa-arrow-left text-xs"></i>`;
+                btn.innerHTML = `<span>حفظ وبدء العمل</span><i class="fa-solid fa-arrow-left text-xs"></i>`;
+            }
+        }
+
+        function switchTeacher(id) {
+            const selected = currentUser.teachers.find(t => t.id == id);
+            if (selected) {
+                currentUser.teacher_id = selected.id;
+                currentUser.teacher_name = selected.name;
+                localStorage.setItem('akram_session', JSON.stringify(currentUser));
+                loadDashboard();
             }
         }
 
@@ -528,10 +560,20 @@
             document.getElementById('dropdown-name').textContent = name;
             document.getElementById('dropdown-email').textContent = currentUser.email;
 
+            const teacherSelect = document.getElementById('teacher-select');
+            const wrapper = document.getElementById('teacher-selector-wrapper');
+            if (currentUser.teachers && currentUser.teachers.length > 0) {
+                teacherSelect.innerHTML = currentUser.teachers.map(t => `<option value="${t.id}" ${t.id == currentUser.teacher_id ? 'selected' : ''}>${t.name}</option>`).join('');
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+            }
+
             showScreen('dashboard');
 
             try {
-                const data = await apiCall('/api/items/');
+                const url = currentUser.teacher_id ? `/api/items/?teacher_id=${currentUser.teacher_id}` : '/api/items/';
+                const data = await apiCall(url);
                 state = data.items;
                 render();
             } catch(err) {
@@ -545,7 +587,7 @@
                 try {
                     currentUser = JSON.parse(session);
                     await fetch(`${API_BASE}/`, { credentials: 'include' });
-                    if (currentUser.teacher_name) {
+                    if (currentUser.teacher_id) {
                         await loadDashboard();
                     } else {
                         showScreen('setup');
@@ -749,12 +791,12 @@
 
             try {
                 if (id) {
-                    const data = await apiCall(`/api/items/${id}/`, 'PATCH', { text, week: parseInt(week), type, status });
+                    const data = await apiCall(`/api/items/${id}/`, 'PATCH', { text, week: parseInt(week), type, status, teacher_id: currentUser.teacher_id });
                     const idx = state.findIndex(i => i.id == id);
                     if (idx !== -1) state[idx] = data.item;
                     showToast('✏️', 'تم حفظ التعديل بنجاح!');
                 } else {
-                    const data = await apiCall('/api/items/create/', 'POST', { text, week: parseInt(week), type, status });
+                    const data = await apiCall('/api/items/create/', 'POST', { text, week: parseInt(week), type, status, teacher_id: currentUser.teacher_id });
                     state.push(data.item);
                     showToast('✨', 'تمت إضافة الفكرة بنجاح!');
                 }
@@ -836,8 +878,9 @@
                 <div style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 40px 20px; border-radius: 16px; text-align: center; margin-bottom: 40px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);">
                     <div style="font-size: 48px; margin-bottom: 15px;">💼</div>
                     <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">EduPlan</h1>
+                    <p style="margin: 8px 0 0 0; font-size: 18px; opacity: 0.9;">خطة المحتوى الاحترافية</p>
                     <div style="margin-top: 25px; display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 99px; font-weight: bold; font-size: 15px; border: 1px solid rgba(255,255,255,0.3);">
-                      ${currentUser.teacher_name || 'غير محدد'}
+                        العميل / المدرس: ${currentUser.teacher_name || 'غير محدد'}
                     </div>
                 </div>
             `;
@@ -875,7 +918,7 @@
 
             htmlContent += `
                 <div style="margin-top: 50px; padding-top: 20px; border-top: 2px dashed #e2e8f0; text-align: center; color: #94a3b8; font-size: 13px; font-weight: bold;">
-                    تم التنزيل من منصة EduPlan بتاريخ ${new Date().toLocaleDateString('ar-EG')}
+                    تم التصدير من منصة EduPlan بتاريخ ${new Date().toLocaleDateString('ar-EG')}
                 </div>
             `;
 
