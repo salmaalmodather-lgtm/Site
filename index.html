@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <title> EduPlan </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -183,8 +182,7 @@
                         <p class="text-xs text-slate-400 mt-0.5">لوحة التحكم التفاعلية لخطة المحتوى الشهري</p>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-center">
-                    
+                <div id="admin-controls" class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-center">
                     <div id="teacher-selector-wrapper" class="hidden flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 shadow-lg">
                         <i class="fa-solid fa-users text-slate-400 text-xs"></i>
                         <select id="teacher-select" onchange="switchTeacher(this.value)" class="bg-transparent text-white font-bold text-sm outline-none cursor-pointer font-cairo">
@@ -195,8 +193,8 @@
                         </button>
                     </div>
 
-                    <button onclick="downloadPDF()" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-file-pdf text-rose-400"></i> مشاركة الخطة ك PDF 
+                    <button onclick="copySharedLink()" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-link"></i> نسخ رابط الخطة 
                     </button>
                     <button onclick="openAddModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/20 flex items-center gap-2 transition-all hover:-translate-y-0.5">
                         <i class="fa-solid fa-plus text-xs"></i> إضافة فكرة جديدة
@@ -275,10 +273,7 @@
                 <div id="empty-state" class="hidden text-center py-20">
                     <div class="text-6xl mb-4">📝</div>
                     <h3 class="text-lg font-bold text-slate-300">لا يوجد محتوى بعد</h3>
-                    <p class="text-sm text-slate-500 mt-1">ابدأ بإضافة أول فكرة محتوى لك!</p>
-                    <button onclick="openAddModal()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all">
-                        <i class="fa-solid fa-plus ml-1"></i> إضافة فكرة
-                    </button>
+                    <p class="text-sm text-slate-500 mt-1">القائمة فارغة حالياً</p>
                 </div>
             </section>
         </main>
@@ -381,6 +376,7 @@
         let activeTypeFilter = 'all';
         let searchQuery = '';
         let pendingAction = null;
+        let isReadOnly = false;
 
         function showScreen(name) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -568,6 +564,32 @@
             });
         }
 
+        function copySharedLink() {
+            if (!currentUser || !currentUser.teacher_id) return;
+            const url = window.location.origin + window.location.pathname + '?shared=' + currentUser.teacher_id;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('🔗', 'تم نسخ رابط الخطة بنجاح!');
+            });
+        }
+
+        async function loadSharedDashboard(teacherId) {
+            try {
+                const res = await fetch(API_BASE + `/api/shared/${teacherId}/`);
+                const data = await res.json();
+                if(!res.ok) throw new Error();
+                
+                state = data.items;
+                document.getElementById('dashboard-title').textContent = data.teacher_name;
+                document.getElementById('footer-name').textContent = data.teacher_name;
+                document.getElementById('admin-controls').style.display = 'none';
+                
+                showScreen('dashboard');
+                render();
+            } catch(e) {
+                alert("رابط الخطة غير صحيح أو غير متاح");
+            }
+        }
+
         async function loadDashboard() {
             const name = currentUser.teacher_name || currentUser.email;
             document.getElementById('dashboard-title').textContent = name;
@@ -599,6 +621,15 @@
         }
 
         async function initApp() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedId = urlParams.get('shared');
+            
+            if (sharedId) {
+                isReadOnly = true;
+                loadSharedDashboard(sharedId);
+                return;
+            }
+
             const session = localStorage.getItem('akram_session');
             if (session) {
                 try {
@@ -673,6 +704,13 @@
             };
             const t = typeMap[card.type] || typeMap['meme'];
 
+            const statusMap = {
+                ready: { label: '🟢 جاهز للنشر', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+                progress: { label: '🎨 قيد العمل', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+                pending: { label: '🎥 محتاج تصوير', color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/20' }
+            };
+            const sData = statusMap[card.status] || statusMap['pending'];
+
             const statusColor = card.status === 'ready'
                 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                 : card.status === 'progress'
@@ -680,6 +718,42 @@
                 : "bg-rose-500/10 text-rose-400 border-rose-500/20";
 
             const safeText = card.text.replace(/`/g,'\\`').replace(/\$/g,'\\$');
+
+            let actionHtml = '';
+            
+            if (!isReadOnly) {
+                actionHtml = `
+                    <div class="mt-6 pt-4 border-t border-slate-800/80 flex justify-between items-center">
+                        <div class="relative">
+                            <select onchange="updateCardStatus('${card.id}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border bg-slate-950 hover:bg-slate-900 border-slate-800 cursor-pointer focus:outline-none transition-colors font-cairo ${statusColor}">
+                                <option value="pending"  ${card.status==='pending' ?'selected':''}>🎥 محتاج تصوير</option>
+                                <option value="progress" ${card.status==='progress'?'selected':''}>🎨 قيد العمل</option>
+                                <option value="ready"    ${card.status==='ready'   ?'selected':''}>🟢 جاهز للنشر</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <button onclick="copyToClipboard(this, \`${safeText}\`)" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center transition-all" title="نسخ">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <button onclick="openEditModal('${card.id}')" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-indigo-500/50 bg-slate-950 hover:bg-indigo-600/10 text-slate-400 hover:text-indigo-400 flex items-center justify-center transition-all" title="تعديل">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteCard('${card.id}')" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-rose-500/50 bg-slate-950 hover:bg-rose-600/10 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-all" title="حذف">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                actionHtml = `
+                    <div class="mt-6 pt-4 border-t border-slate-800/80 flex justify-between items-center">
+                        <span class="text-xs font-bold px-3 py-1.5 rounded-lg border ${sData.bg} ${sData.color}">${sData.label}</span>
+                        <button onclick="copyToClipboard(this, \`${safeText}\`)" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center transition-all" title="نسخ">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                `;
+            }
 
             div.innerHTML = `
                 <div>
@@ -691,26 +765,7 @@
                     </div>
                     <p class="text-slate-100 font-bold leading-relaxed text-[15px] whitespace-pre-line">${card.text}</p>
                 </div>
-                <div class="mt-6 pt-4 border-t border-slate-800/80 flex justify-between items-center">
-                    <div class="relative">
-                        <select onchange="updateCardStatus('${card.id}', this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border bg-slate-950 hover:bg-slate-900 border-slate-800 cursor-pointer focus:outline-none transition-colors font-cairo ${statusColor}">
-                            <option value="pending"  ${card.status==='pending' ?'selected':''}>🎥 محتاج تصوير</option>
-                            <option value="progress" ${card.status==='progress'?'selected':''}>🎨 قيد العمل</option>
-                            <option value="ready"    ${card.status==='ready'   ?'selected':''}>🟢 جاهز للنشر</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                        <button onclick="copyToClipboard(this, \`${safeText}\`)" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center transition-all" title="نسخ">
-                            <i class="fa-regular fa-copy"></i>
-                        </button>
-                        <button onclick="openEditModal('${card.id}')" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-indigo-500/50 bg-slate-950 hover:bg-indigo-600/10 text-slate-400 hover:text-indigo-400 flex items-center justify-center transition-all" title="تعديل">
-                            <i class="fa-regular fa-pen-to-square"></i>
-                        </button>
-                        <button onclick="deleteCard('${card.id}')" class="w-8 h-8 rounded-lg border border-slate-800 hover:border-rose-500/50 bg-slate-950 hover:bg-rose-600/10 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-all" title="حذف">
-                            <i class="fa-regular fa-trash-can"></i>
-                        </button>
-                    </div>
-                </div>
+                ${actionHtml}
             `;
             return div;
         }
@@ -863,95 +918,6 @@
             toast.classList.remove('translate-y-20','opacity-0');
             toast.classList.add('translate-y-0','opacity-100');
             setTimeout(() => { toast.classList.remove('translate-y-0','opacity-100'); toast.classList.add('translate-y-20','opacity-0'); }, 3000);
-        }
-
-        function downloadPDF() {
-            if (state.length === 0) {
-                showToast('⚠️', 'لا يوجد محتوى لتصديره');
-                return;
-            }
-
-            showToast('⏳', 'جاري تجهيز ملف الـ PDF احترافي...');
-
-            const element = document.createElement('div');
-            element.style.padding = '40px';
-            element.style.fontFamily = 'Cairo, sans-serif';
-            element.style.direction = 'rtl';
-            element.style.backgroundColor = '#f8fafc';
-            element.style.color = '#0f172a';
-
-            const typeMap = {
-                meme: '🤡 ميمز', carousel: '📸 كاروسيل', reel: '🎬 ريل فيديو',
-                tiktok: '📱 تيك توك للمستر', design: '🎨 ديزاين', ai: '🤖 بالذكاء الاصطناعي', interactive: '❓ تفاعل'
-            };
-
-            const statusMap = {
-                ready: { label: '🟢 جاهز', color: '#10b981', bg: '#d1fae5' },
-                progress: { label: '🎨 قيد العمل', color: '#f59e0b', bg: '#fef3c7' },
-                pending: { label: '🎥 محتاج تصوير', color: '#f43f5e', bg: '#ffe4e6' }
-            };
-
-            let htmlContent = `
-                <div style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: white; padding: 40px 20px; border-radius: 16px; text-align: center; margin-bottom: 40px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);">
-                    <div style="font-size: 48px; margin-bottom: 15px;">💼</div>
-                    <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">EduPlan</h1>
-                    <p style="margin: 8px 0 0 0; font-size: 18px; opacity: 0.9;">خطة المحتوى الاحترافية</p>
-                    <div style="margin-top: 25px; display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 99px; font-weight: bold; font-size: 15px; border: 1px solid rgba(255,255,255,0.3);">
-                        العميل / المدرس: ${currentUser.teacher_name || 'غير محدد'}
-                    </div>
-                </div>
-            `;
-
-            for (let w = 1; w <= 4; w++) {
-                const weekItems = state.filter(item => item.week == w);
-                if (weekItems.length > 0) {
-                    htmlContent += `
-                        <div style="display: flex; align-items: center; gap: 12px; margin: 30px 0 20px 0; page-break-after: avoid;">
-                            <div style="width: 5px; height: 28px; background: #4f46e5; border-radius: 4px;"></div>
-                            <h2 style="color: #1e293b; font-size: 22px; font-weight: 800; margin: 0;">الأسبوع ${w}</h2>
-                        </div>
-                    `;
-                    
-                    weekItems.forEach(item => {
-                        const tLabel = typeMap[item.type] || '📝 محتوى';
-                        const sData = statusMap[item.status] || statusMap['pending'];
-                        
-                        htmlContent += `
-                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-right: 5px solid ${sData.color}; border-radius: 12px; padding: 24px; margin-bottom: 16px; page-break-inside: avoid; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 16px;">
-                                    <span style="background: #f8fafc; color: #475569; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: bold; border: 1px solid #e2e8f0;">
-                                        ${tLabel}
-                                    </span>
-                                    <span style="color: ${sData.color}; font-size: 13px; font-weight: bold; background: ${sData.bg}; padding: 6px 14px; border-radius: 99px;">
-                                        ${sData.label}
-                                    </span>
-                                </div>
-                                <p style="font-size: 15px; line-height: 1.8; color: #334155; margin: 0; white-space: pre-wrap; font-weight: 600;">${item.text}</p>
-                            </div>
-                        `;
-                    });
-                }
-            }
-
-            htmlContent += `
-                <div style="margin-top: 50px; padding-top: 20px; border-top: 2px dashed #e2e8f0; text-align: center; color: #94a3b8; font-size: 13px; font-weight: bold;">
-                    تم التصدير من منصة EduPlan بتاريخ ${new Date().toLocaleDateString('ar-EG')}
-                </div>
-            `;
-
-            element.innerHTML = htmlContent;
-
-            const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     `EduPlan_${currentUser.teacher_name || 'Plan'}.pdf`,
-                image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                showToast('✅', 'تم تنزيل الـ PDF بنجاح!');
-            });
         }
 
         window.onload = initApp;
